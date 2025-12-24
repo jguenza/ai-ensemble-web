@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>AI-Ensemble — Role-Playing Learning Interface</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont,
+                   "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #f5f5f5;
+    }
+
+    header {
+      padding: 16px 24px;
+      border-bottom: 1px solid #ddd;
+      background: #ffffff;
+      font-size: 22px;
+      font-weight: 600;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 64px);
+    }
+
+    .scenario {
+      flex: 2;
+      margin: 16px;
+      padding: 16px;
+      background: #ffffff;
+      border: 1px solid #ccc;
+    }
+
+    .bottom {
+      flex: 1;
+      display: flex;
+      gap: 16px;
+      margin: 0 16px 16px 16px;
+    }
+
+    .panel {
+      flex: 1;
+      padding: 16px;
+      background: #ffffff;
+      border: 1px solid #ccc;
+    }
+
+    h2 {
+      margin-top: 0;
+      font-size: 18px;
+    }
+
+    .chat-box {
+      margin-top: 8px;
+      padding: 8px;
+      height: 60%;
+      border: 1px dashed #bbb;
+      background: #fafafa;
+      font-size: 14px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+
+    .input-box {
+      margin-top: 8px;
+    }
+
+    .input-box input {
+      width: 100%;
+      padding: 8px;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+
+    .msg-user {
+      font-weight: 600;
+    }
+
+    .msg-ai {
+      margin-top: 4px;
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  AI-Ensemble — Role-Playing Learning Interface
+</header>
+
+<div class="container">
+
+  <!-- MAIN SCENARIO -->
+  <div class="scenario" data-role="scenario">
+    <h2>Main Scenario</h2>
+
+    <div class="chat-box" id="scenario-output"></div>
+
+    <div class="input-box">
+      <input id="scenario-input"
+             type="text"
+             placeholder="Respond to the scenario...">
+    </div>
+  </div>
+
+  <!-- EXPERT + MANAGER -->
+  <div class="bottom">
+
+    <div class="panel" data-role="expert">
+      <h2>Expert</h2>
+
+      <div class="chat-box" id="expert-output"></div>
+
+      <div class="input-box">
+        <input id="expert-input"
+               type="text"
+               placeholder="Ask the expert...">
+      </div>
+    </div>
+
+    <div class="panel" data-role="manager">
+      <h2>Manager</h2>
+
+      <div class="chat-box" id="manager-output"></div>
+
+      <div class="input-box">
+        <input id="manager-input"
+               type="text"
+               placeholder="Ask the manager...">
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const AI_ENDPOINT = "https://statsapp-47vj4.ondigitalocean.app/api/chat";
+
+  async function sendMessage(role, inputEl, outputEl) {
+    const message = inputEl.value.trim();
+    if (!message) return;
+
+    inputEl.value = "";
+
+    outputEl.innerHTML += `<div class="msg-user">You:</div><div>${message}</div>`;
+
+    const response = await fetch(AI_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        role: role,
+        message: message
+      })
+    });
+
+    const data = await response.json();
+
+    outputEl.innerHTML += `<div class="msg-ai"><strong>AI:</strong><br>${data.answer || JSON.stringify(data)}</div>`;
+    outputEl.scrollTop = outputEl.scrollHeight;
+  }
+
+  function wire(role) {
+    const input = document.getElementById(`${role}-input`);
+    const output = document.getElementById(`${role}-output`);
+
+    input.addEventListener("keydown", e => {
+      if (e.key === "Enter") {
+        sendMessage(role, input, output);
+      }
+    });
+  }
+
+  wire("scenario");
+  wire("expert");
+  wire("manager");
+
+  console.log("AI-Ensemble chat activated");
+</script>
+
+</body>
+</html>
